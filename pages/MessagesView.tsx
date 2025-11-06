@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, orderBy, limit, addDoc, serverTimestamp, onSnapshot, Timestamp, where, doc, getDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, limit, addDoc, serverTimestamp, onSnapshot, Timestamp, doc, getDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Send, Pin } from 'lucide-react';
 

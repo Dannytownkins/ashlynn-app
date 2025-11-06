@@ -18,15 +18,16 @@ const formatTime = (totalSeconds: number): string => {
 };
 
 const Timer: React.FC<TimerProps> = ({ activeSession, onStart, onStop, onTimerEnd }) => {
-  const { seconds, isRunning, startTimer, stopTimer, formattedTime } = useTimer(onTimerEnd);
+  const { seconds, isRunning, startTimer, stopTimer } = useTimer(onTimerEnd);
   
   // Sync timer with Firestore activeSession
   useEffect(() => {
     if (activeSession && activeSession.remainingSeconds !== undefined) {
       startTimer(activeSession.remainingSeconds);
-    } else {
+    } else if (!activeSession) {
       stopTimer();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSession?.remainingSeconds, activeSession?.id]);
   
   const handleStart = (type: SessionType, mins: number) => {

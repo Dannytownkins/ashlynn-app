@@ -6,6 +6,7 @@ import {
   setDoc,
   updateDoc,
   addDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -15,7 +16,7 @@ import {
   onSnapshot,
   Unsubscribe,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, UploadResult } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 import {
   Task,
@@ -70,13 +71,15 @@ export const getSubjects = async (): Promise<Subject[]> => {
 export const getTodaysTasks = async (): Promise<Task[]> => {
   const today = new Date().toISOString().split('T')[0];
   const todayStart = new Date(today);
+  todayStart.setHours(0, 0, 0, 0);
   const todayEnd = new Date(today);
   todayEnd.setDate(todayEnd.getDate() + 1);
+  todayEnd.setHours(0, 0, 0, 0);
 
   const q = query(
     collection(db, COLLECTIONS.tasks),
-    where('dueDate', '>=', todayStart.toISOString()),
-    where('dueDate', '<', todayEnd.toISOString()),
+    where('dueDate', '>=', Timestamp.fromDate(todayStart)),
+    where('dueDate', '<', Timestamp.fromDate(todayEnd)),
     where('status', '!=', TaskStatus.Done),
     orderBy('dueDate', 'asc')
   );
@@ -91,7 +94,7 @@ export const getTodaysTasks = async (): Promise<Task[]> => {
   // Also get overdue tasks
   const overdueQ = query(
     collection(db, COLLECTIONS.tasks),
-    where('dueDate', '<', todayStart.toISOString()),
+    where('dueDate', '<', Timestamp.fromDate(todayStart)),
     where('status', '!=', TaskStatus.Done),
     orderBy('dueDate', 'asc')
   );
@@ -126,6 +129,9 @@ export const addTask = async (
 ): Promise<Task> => {
   const taskData = {
     ...newTaskData,
+    dueDate: typeof newTaskData.dueDate === 'string' 
+      ? Timestamp.fromDate(new Date(newTaskData.dueDate))
+      : newTaskData.dueDate,
     status: TaskStatus.Todo,
     checklist: [],
     createdAt: serverTimestamp(),
@@ -329,9 +335,8 @@ export const stopSession = async (): Promise<Session | null> => {
     createdAt: serverTimestamp(),
   });
 
-  // Delete active session
-  await updateDoc(sessionRef, { endedAt: serverTimestamp() });
-  // Note: In production, you might want to keep the activeSession doc and mark it as ended
+  // Delete active session document
+  await deleteDoc(sessionRef);
 
   return session;
 };
