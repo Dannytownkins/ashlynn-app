@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Subjects collection - read-only for authenticated users
+    match /subjects/{subjectId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admins via backend
+    }
+    
+    // Tasks collection - users can read all, write their own
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false; // Soft delete via status
+    }
+    
+    // Plans collection (daily plans) - users can read/write
+    match /plans/{planId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // Sessions collection - users can read all, create/update their own
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    // Active session (single document) - users can read all, update their own
+    match /activeSession/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+    
+    // Messages collection - users can read/write all (shared thread)
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    // Settings collection - read-only for authenticated users
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admins via backend
+    }
+    
+    // Global settings - read-only
+    match /settings/global {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+  }
+}
+

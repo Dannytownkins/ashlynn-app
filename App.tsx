@@ -5,7 +5,8 @@ import StudentView from './pages/StudentView';
 import ParentView from './pages/ParentView';
 import ReportsView from './pages/ReportsView';
 import SettingsView from './pages/SettingsView';
-import { BookOpen, BarChart2, Settings, Users } from 'lucide-react';
+import MessagesView from './pages/MessagesView';
+import { BookOpen, BarChart2, Settings, Users, MessageSquare } from 'lucide-react';
 import { initializeFirebaseAndAskForPermission } from './services/firebase';
 
 const App: React.FC = () => {
@@ -34,6 +35,8 @@ const App: React.FC = () => {
         return <ReportsView />;
       case View.Settings:
         return <SettingsView />;
+      case View.Messages:
+        return <MessagesView />;
       default:
         return role === UserRole.Student ? <StudentView /> : <ParentView />;
     }
@@ -62,6 +65,7 @@ const App: React.FC = () => {
 
       <nav className="sticky bottom-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 p-2 md:hidden flex justify-around">
           <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
+          <NavItem icon={MessageSquare} label="Messages" currentView={view} targetView={View.Messages} />
           <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
           <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
       </nav>
@@ -69,6 +73,7 @@ const App: React.FC = () => {
       {/* Desktop sidebar - shown for md screens and up */}
       <div className="hidden md:flex fixed top-0 left-0 h-full w-20 bg-white border-r border-slate-200 flex-col items-center pt-24 space-y-8">
         <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
+        <NavItem icon={MessageSquare} label="Messages" currentView={view} targetView={View.Messages} />
         <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
         <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
       </div>

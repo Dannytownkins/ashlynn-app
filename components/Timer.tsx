@@ -1,18 +1,33 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTimer } from '../hooks/useTimer';
 import { Play, Pause, Square, SkipForward } from 'lucide-react';
-import { SessionType } from '../types';
+import { SessionType, ActiveSession } from '../types';
 
 interface TimerProps {
-  activeSessionType: SessionType | null;
+  activeSession: ActiveSession | null;
   onStart: (type: SessionType, durationMins: number) => void;
   onStop: () => void;
   onTimerEnd: () => void;
 }
 
-const Timer: React.FC<TimerProps> = ({ activeSessionType, onStart, onStop, onTimerEnd }) => {
+const formatTime = (totalSeconds: number): string => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+};
+
+const Timer: React.FC<TimerProps> = ({ activeSession, onStart, onStop, onTimerEnd }) => {
   const { seconds, isRunning, startTimer, stopTimer, formattedTime } = useTimer(onTimerEnd);
+  
+  // Sync timer with Firestore activeSession
+  useEffect(() => {
+    if (activeSession && activeSession.remainingSeconds !== undefined) {
+      startTimer(activeSession.remainingSeconds);
+    } else {
+      stopTimer();
+    }
+  }, [activeSession?.remainingSeconds, activeSession?.id]);
   
   const handleStart = (type: SessionType, mins: number) => {
     startTimer(mins * 60);
@@ -24,16 +39,22 @@ const Timer: React.FC<TimerProps> = ({ activeSessionType, onStart, onStop, onTim
     onStop();
   };
   
-  const isFocusing = activeSessionType === SessionType.Focus;
+  const isFocusing = activeSession?.type === SessionType.Focus;
 
-  if (activeSessionType) {
+  if (activeSession) {
+    // Use remainingSeconds from Firestore if available, otherwise use local timer
+    const displaySeconds = activeSession.remainingSeconds !== undefined 
+      ? activeSession.remainingSeconds 
+      : seconds;
+    const displayTime = formatTime(displaySeconds);
+    
     return (
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6 flex flex-col items-center">
             <h2 className="text-lg font-semibold text-slate-700 mb-2">
                 {isFocusing ? 'Focus Session' : 'Break Time'}
             </h2>
             <div className="text-7xl font-bold text-indigo-600 my-4 tabular-nums">
-                {formattedTime}
+                {displayTime}
             </div>
             <div className="flex items-center space-x-4">
                 <button

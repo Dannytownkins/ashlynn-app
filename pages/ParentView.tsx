@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import * as api from '../services/mockApi';
+import * as api from '../services/firestoreApi';
 import { Task, Subject, Session, TaskStatus } from '../types';
 import { Activity, CheckCircle, Smartphone, Clock, MessageSquare, AlertTriangle, PlusCircle } from 'lucide-react';
 import SubjectPill from '../components/SubjectPill';
