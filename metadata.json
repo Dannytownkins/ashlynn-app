@@ -1,0 +1,5 @@
+{
+  "name": "FocusFlow Homework Coordinator",
+  "description": "A web application for parents and students to coordinate independent-study homework. It helps students focus with timers and submit evidence of their work, while allowing parents to monitor progress and receive real-time updates.",
+  "requestFramePermissions": []
+}
