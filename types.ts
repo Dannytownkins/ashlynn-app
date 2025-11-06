@@ -8,7 +8,6 @@ export enum View {
   Home = 'home',
   Reports = 'reports',
   Settings = 'settings',
-  Messages = 'messages',
 }
 
 export enum TaskStatus {

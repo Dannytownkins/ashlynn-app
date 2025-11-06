@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Task, Subject, DailyStats, DailyGoal, ActiveSession, SessionType, Mood, TaskStatus } from '../types';
-import * as api from '../services/firestoreApi';
+import * as api from '../services/mockApi';
 import TaskCard from '../components/TaskCard';
 import Timer from '../components/Timer';
 import ProgressRing from '../components/ProgressRing';
 import CheckInModal from '../components/CheckInModal';
 import ConfirmationModal from '../components/ConfirmationModal';
-import EvidenceUploadModal from '../components/EvidenceUploadModal';
 import { Award, Sun } from 'lucide-react';
 
 const StudentView: React.FC = () => {
@@ -19,8 +18,7 @@ const StudentView: React.FC = () => {
     const [isCheckInModalOpen, setCheckInModalOpen] = useState(false);
     const [taskToSubmit, setTaskToSubmit] = useState<Task | null>(null);
     const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
-    const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
-    const [evidenceTaskId, setEvidenceTaskId] = useState<string | null>(null);
+    const [breakingDownTaskId, setBreakingDownTaskId] = useState<string | null>(null);
     
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -46,41 +44,18 @@ const StudentView: React.FC = () => {
 
     useEffect(() => {
         fetchData();
-        
-        // Subscribe to active session updates
-        const unsubscribe = api.subscribeToActiveSession((session) => {
-            setActiveSession(session);
-        });
-
-        return () => unsubscribe();
     }, [fetchData]);
-
-    useEffect(() => {
-        // Update Firestore tick every 30 seconds while session is active
-        let tickInterval: ReturnType<typeof setInterval>;
-        if (activeSession) {
-            tickInterval = setInterval(() => {
-                api.updateActiveSessionTick();
-            }, 30000); // Update every 30 seconds
-        }
-        return () => {
-            if (tickInterval) clearInterval(tickInterval);
-        };
-    }, [activeSession]);
 
     useEffect(() => {
         // FIX: Replaced NodeJS.Timeout with a browser-compatible type.
         let checkInInterval: ReturnType<typeof setInterval>;
         if (activeSession?.type === SessionType.Focus) {
-            // Check-in prompt every 10-15 minutes (randomized between 10-15)
-            const checkInDelay = (10 + Math.random() * 5) * 60 * 1000;
+            // Check-in prompt every 10 minutes.
             checkInInterval = setInterval(() => {
                 setCheckInModalOpen(true);
-            }, checkInDelay);
+            }, 10 * 60 * 1000);
         }
-        return () => {
-            if (checkInInterval) clearInterval(checkInInterval);
-        };
+        return () => clearInterval(checkInInterval);
     }, [activeSession]);
 
     const handleStartTask = useCallback(async (taskId: string) => {
@@ -120,21 +95,23 @@ const StudentView: React.FC = () => {
     const handleSubmitTask = useCallback((taskId: string) => {
         const task = tasks.find(t => t.id === taskId);
         if (task) {
-            setEvidenceTaskId(taskId);
-            setIsEvidenceModalOpen(true);
+            setTaskToSubmit(task);
         }
     }, [tasks]);
 
-    const handleEvidenceUploaded = async (evidenceUrl: string) => {
-        if (!evidenceTaskId) return;
+    const handleConfirmSubmit = async () => {
+        if (!taskToSubmit) return;
         
+        // In a real app, this would come from a file upload or link input
+        const dummyEvidenceUrl = `https://picsum.photos/seed/${taskToSubmit.id}/200/150`;
+
         try {
-            const updatedTask = await api.submitEvidence(evidenceTaskId, evidenceUrl);
+            const updatedTask = await api.submitEvidence(taskToSubmit.id, dummyEvidenceUrl);
             setTasks(prevTasks => prevTasks.map(t => t.id === updatedTask.id ? updatedTask : t));
         } catch (error) {
             console.error("Failed to submit task:", error);
         } finally {
-            setEvidenceTaskId(null);
+            setTaskToSubmit(null);
         }
     };
     
@@ -151,6 +128,18 @@ const StudentView: React.FC = () => {
         }
     };
 
+    const handleBreakdownTask = async (taskId: string) => {
+        setBreakingDownTaskId(taskId);
+        try {
+            const updatedTask = await api.breakdownTaskWithAI(taskId);
+            setTasks(prevTasks => prevTasks.map(t => t.id === taskId ? updatedTask : t));
+        } catch (error) {
+            console.error("Failed to break down task:", error);
+            alert("Sorry, the AI couldn't break down that task. Make sure your API key is configured and try again.");
+        } finally {
+            setBreakingDownTaskId(null);
+        }
+    };
 
     const getSubjectById = (id: string) => subjects.find(s => s.id === id);
 
@@ -164,14 +153,19 @@ const StudentView: React.FC = () => {
     return (
         <div className="space-y-8">
             <CheckInModal isOpen={isCheckInModalOpen} onClose={() => setCheckInModalOpen(false)} onCheckIn={handleCheckIn} />
-            <EvidenceUploadModal
-                isOpen={isEvidenceModalOpen}
-                onClose={() => {
-                    setIsEvidenceModalOpen(false);
-                    setEvidenceTaskId(null);
-                }}
-                onUploadComplete={handleEvidenceUploaded}
-                taskId={evidenceTaskId || ''}
+            <ConfirmationModal
+                isOpen={!!taskToSubmit}
+                onClose={() => setTaskToSubmit(null)}
+                onConfirm={handleConfirmSubmit}
+                title="Submit Your Work?"
+                message={
+                    <>
+                        Are you sure you want to mark <br />
+                        <span className="font-bold">"{taskToSubmit?.title}"</span>
+                        <br /> as complete and submit it for review?
+                    </>
+                }
+                confirmButtonText="Yes, Submit"
             />
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -191,7 +185,7 @@ const StudentView: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                      <Timer 
-                        activeSession={activeSession}
+                        activeSessionType={activeSession?.type || null}
                         onStart={handleStartSession}
                         onStop={handleStopSession}
                         onTimerEnd={handleTimerEnd}
@@ -219,6 +213,8 @@ const StudentView: React.FC = () => {
                             onChecklistItemToggle={handleChecklistItemToggle}
                             onStartTask={handleStartTask}
                             onSubmitTask={handleSubmitTask}
+                            onBreakdownTask={handleBreakdownTask}
+                            isBreakingDown={task.id === breakingDownTaskId}
                         />
                     )) : (
                         <div className="text-center py-10 bg-white rounded-lg shadow-sm">

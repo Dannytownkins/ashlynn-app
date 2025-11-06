@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import * as api from '../services/firestoreApi';
+import * as api from '../services/mockApi';
 import { Task, Subject, Session, TaskStatus } from '../types';
-import { Activity, CheckCircle, Smartphone, Clock, MessageSquare, AlertTriangle, PlusCircle } from 'lucide-react';
+import { Activity, CheckCircle, Smartphone, Clock, MessageSquare, AlertTriangle, PlusCircle, Link } from 'lucide-react';
 import SubjectPill from '../components/SubjectPill';
 import TaskCard from '../components/TaskCard';
 import AddTaskModal from '../components/AddTaskModal';
@@ -80,6 +80,19 @@ const ParentView: React.FC = () => {
 
     const getSubjectById = (id: string) => subjects.find(s => s.id === id);
 
+    const isImageUrl = (url: string): boolean => {
+        if (url.includes('picsum.photos')) {
+            return true;
+        }
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        try {
+            const path = new URL(url).pathname.toLowerCase();
+            return imageExtensions.some(ext => path.endsWith(ext));
+        } catch (e) {
+            return false;
+        }
+    };
+
     if (isLoading && !liveStatus) {
         return <div className="text-center p-10">Loading Dan's dashboard...</div>;
     }
@@ -142,7 +155,32 @@ const ParentView: React.FC = () => {
                                {getSubjectById(task.subjectId) && <SubjectPill subject={getSubjectById(task.subjectId)!} />}
                                <span className={`ml-3 font-semibold ${task.status === TaskStatus.Rework ? 'text-amber-600' : 'text-green-600'}`}>{task.status === TaskStatus.Rework ? 'Rework Requested' : 'Submitted'}</span>
                             </div>
-                            {task.evidenceUrl && <img src={task.evidenceUrl} alt="Evidence" className="my-2 rounded-lg max-h-40"/>}
+                            
+                            {task.evidenceUrl && (
+                                <div className="my-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                    <h5 className="text-sm font-semibold text-slate-600 mb-2">Submitted Evidence</h5>
+                                    {isImageUrl(task.evidenceUrl) ? (
+                                        <a href={task.evidenceUrl} target="_blank" rel="noopener noreferrer">
+                                            <img 
+                                                src={task.evidenceUrl} 
+                                                alt={`Evidence for ${task.title}`} 
+                                                className="rounded-lg max-h-48 w-auto border border-slate-300 hover:opacity-90 transition-opacity" 
+                                            />
+                                        </a>
+                                    ) : (
+                                        <a 
+                                            href={task.evidenceUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="flex items-center text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                                        >
+                                            <Link size={16} className="mr-2 flex-shrink-0" />
+                                            <span className="truncate">{task.evidenceUrl}</span>
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+
                              <div className="flex items-center space-x-2 mt-3 border-t border-slate-100 pt-3">
                                  <button onClick={() => handleApproveTask(task.id)} className="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition-shadow">Approve</button>
                                  <button onClick={() => handleReworkTask(task.id)} className="bg-amber-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-amber-600 transition-shadow">Request Rework</button>

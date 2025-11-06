@@ -1,5 +1,6 @@
 import { Task, Subject, Session, ActiveSession, SessionType, DailyGoal, DailyStats, TaskStatus, Mood, ChecklistItem } from '../types';
 import { TASKS, SUBJECTS, SESSIONS, POMODORO_SETTINGS, DAILY_GOAL, LIVE_STATUS, STUDENT_STREAK } from '../constants';
+import { GoogleGenAI, Type } from '@google/genai';
 
 // --- SIMULATED DATABASE ---
 let tasks: Task[] = [...TASKS];
@@ -210,4 +211,66 @@ export const saveFCMToken = async (token: string): Promise<{success: boolean}> =
         console.log("FCM Token already exists.");
     }
     return simulateApi({success: true});
+};
+
+export const breakdownTaskWithAI = async (taskId: string): Promise<Task> => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate) {
+        throw new Error("Task not found");
+    }
+    if (!process.env.API_KEY) {
+        throw new Error("API_KEY environment variable not set");
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const prompt = `You are a helpful study assistant. Break down the following homework task into a simple checklist of 3-5 actionable steps for a student.
+    Task Title: "${taskToUpdate.title}"
+    Task Description: "${taskToUpdate.description}"
+    
+    Provide your response as a valid JSON array of objects, where each object has a single "label" key with a string value. For example: [{"label": "First step"}, {"label": "Second step"}].`;
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        label: {
+                            type: Type.STRING,
+                            description: "A single checklist item step."
+                        },
+                    },
+                    required: ["label"],
+                },
+            },
+        },
+    });
+
+    const newChecklistItems: { label: string }[] = JSON.parse(response.text);
+
+    const formattedChecklist: ChecklistItem[] = newChecklistItems.map((item, index) => ({
+        id: `ai-${taskId}-${index + 1}`,
+        label: item.label,
+        done: false,
+    }));
+
+    let updatedTask: Task | undefined;
+    tasks = tasks.map(t => {
+        if (t.id === taskId) {
+            updatedTask = { ...t, checklist: formattedChecklist };
+            return updatedTask;
+        }
+        return t;
+    });
+
+    if (!updatedTask) {
+        throw new Error("Failed to update task after AI generation");
+    }
+
+    // No need to wrap in simulateApi as the Gemini call has latency
+    return updatedTask;
 };

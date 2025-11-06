@@ -1,6 +1,6 @@
 import React from 'react';
 import { Task, Subject, TaskStatus } from '../types';
-import { Book, Clock, CheckCircle2, AlertCircle, RefreshCw, Send, Paperclip, ChevronDown } from 'lucide-react';
+import { Book, Clock, CheckCircle2, AlertCircle, RefreshCw, Send, Paperclip, ChevronDown, Sparkles } from 'lucide-react';
 import SubjectPill from './SubjectPill';
 
 interface TaskCardProps {
@@ -12,9 +12,11 @@ interface TaskCardProps {
   onStartTask?: (taskId: string) => void;
   onViewEvidence?: (task: Task) => void;
   onSubmitTask?: (taskId: string) => void;
+  onBreakdownTask?: (taskId: string) => void;
+  isBreakingDown?: boolean;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, subject, isExpanded, onToggleExpand, onChecklistItemToggle, onStartTask, onViewEvidence, onSubmitTask }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, subject, isExpanded, onToggleExpand, onChecklistItemToggle, onStartTask, onViewEvidence, onSubmitTask, onBreakdownTask, isBreakingDown }) => {
   const getStatusIndicator = () => {
     switch (task.status) {
       case TaskStatus.Submitted:
@@ -84,6 +86,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, subject, isExpanded, onToggle
                className="flex items-center text-sm text-indigo-600 font-semibold py-2 px-3 rounded-lg hover:bg-indigo-50 transition-colors"
              >
               <Paperclip size={16} className="mr-1" /> View Work
+            </button>
+          )}
+          {onBreakdownTask && task.checklist.length === 0 && task.description && (task.status === TaskStatus.Todo || task.status === TaskStatus.Rework) && (
+            <button
+              onClick={() => onBreakdownTask(task.id)}
+              disabled={isBreakingDown}
+              className="flex items-center text-sm text-indigo-600 font-semibold py-2 px-3 rounded-lg hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-wait"
+            >
+              {isBreakingDown ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Sparkles size={16} className="mr-2" />}
+              {isBreakingDown ? 'Thinking...' : 'AI Breakdown'}
             </button>
           )}
           {onSubmitTask && [TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Rework].includes(task.status) && (

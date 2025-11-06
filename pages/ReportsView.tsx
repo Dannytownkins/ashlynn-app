@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Session, Subject, SessionType } from '../types';
-import * as api from '../services/firestoreApi';
+import * as api from '../services/mockApi';
 
 const ReportsView: React.FC = () => {
     const [sessions, setSessions] = useState<Session[]>([]);
@@ -48,35 +48,11 @@ const ReportsView: React.FC = () => {
         return Object.values(dataBySubject).map(d => ({...d, minutes: Math.round(d.minutes)}));
     }, [sessions, subjects]);
     
-    const handleExportCSV = () => {
-        // Create CSV content for sessions
-        const csvRows = [
-            ['Date', 'Type', 'Subject', 'Duration (minutes)', 'Check-ins'].join(','),
-            ...sessions.map(session => {
-                const date = new Date(session.startedAt).toLocaleDateString();
-                const duration = session.durationMs ? Math.round(session.durationMs / (1000 * 60)) : 0;
-                const subjectName = subjects.find(s => s.id === session.subjectId)?.name || '';
-                const checkins = session.checkins?.length || 0;
-                return [
-                    date,
-                    session.type,
-                    subjectName,
-                    duration.toString(),
-                    checkins.toString()
-                ].join(',');
-            })
-        ];
-
-        const csvContent = csvRows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `focusflow-report-${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+     const subjectColorMap: {[key: string]: string} = {
+        'red': '#ef4444',
+        'blue': '#3b82f6',
+        'green': '#22c55e',
+        'yellow': '#eab308'
     };
 
     if (isLoading) {
@@ -114,12 +90,9 @@ const ReportsView: React.FC = () => {
             </div>
             
             <div className="text-center">
-                <button 
-                    onClick={handleExportCSV}
-                    className="bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-shadow"
-                >
-                    Export CSV
-                </button>
+                 <button className="bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-shadow">
+                    Export CSV (TODO)
+                 </button>
             </div>
         </div>
     );

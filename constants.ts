@@ -1,4 +1,3 @@
-
 import { Subject, Task, TaskStatus, Session, SessionType, Mood } from './types';
 
 export const SUBJECTS: Subject[] = [
@@ -85,7 +84,7 @@ export const TASKS: Task[] = [
     // FIX: Added missing checklist property
     checklist: [],
     status: TaskStatus.Submitted,
-    evidenceUrl: 'https://picsum.photos/seed/submitted/200/150',
+    evidenceUrl: 'https://docs.google.com/document/d/example-document-id',
   },
 ];
 
