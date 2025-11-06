@@ -17,6 +17,7 @@ const StudentView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckInModalOpen, setCheckInModalOpen] = useState(false);
     const [taskToSubmit, setTaskToSubmit] = useState<Task | null>(null);
+    const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
     
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -112,6 +113,20 @@ const StudentView: React.FC = () => {
             setTaskToSubmit(null);
         }
     };
+    
+    const handleToggleExpand = (taskId: string) => {
+        setExpandedTaskId(prevId => (prevId === taskId ? null : taskId));
+    };
+
+    const handleChecklistItemToggle = async (taskId: string, checklistItemId: string, done: boolean) => {
+        try {
+            const updatedTask = await api.updateChecklistItem(taskId, checklistItemId, done);
+            setTasks(prevTasks => prevTasks.map(t => (t.id === taskId ? updatedTask : t)));
+        } catch (error) {
+            console.error("Failed to update checklist item:", error);
+        }
+    };
+
 
     const getSubjectById = (id: string) => subjects.find(s => s.id === id);
 
@@ -179,7 +194,10 @@ const StudentView: React.FC = () => {
                         <TaskCard 
                             key={task.id} 
                             task={task} 
-                            subject={getSubjectById(task.subjectId)} 
+                            subject={getSubjectById(task.subjectId)}
+                            isExpanded={task.id === expandedTaskId}
+                            onToggleExpand={handleToggleExpand}
+                            onChecklistItemToggle={handleChecklistItemToggle}
                             onStartTask={handleStartTask}
                             onSubmitTask={handleSubmitTask}
                         />

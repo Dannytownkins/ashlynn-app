@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { UserRole, View } from './types';
 import RoleSwitcher from './components/RoleSwitcher';
 import StudentView from './pages/StudentView';
@@ -7,10 +6,20 @@ import ParentView from './pages/ParentView';
 import ReportsView from './pages/ReportsView';
 import SettingsView from './pages/SettingsView';
 import { BookOpen, BarChart2, Settings, Users } from 'lucide-react';
+import { initializeFirebaseAndAskForPermission } from './services/firebase';
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.Student);
   const [view, setView] = useState<View>(View.Home);
+
+  useEffect(() => {
+    // This effect runs once on mount to initialize notifications
+    if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
+      initializeFirebaseAndAskForPermission();
+    } else {
+      console.warn('Push messaging is not supported by this browser.');
+    }
+  }, []);
 
   const handleRoleChange = useCallback((newRole: UserRole) => {
     setRole(newRole);

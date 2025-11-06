@@ -1,10 +1,11 @@
-import { Task, Subject, Session, ActiveSession, SessionType, DailyGoal, DailyStats, TaskStatus, Mood } from '../types';
+import { Task, Subject, Session, ActiveSession, SessionType, DailyGoal, DailyStats, TaskStatus, Mood, ChecklistItem } from '../types';
 import { TASKS, SUBJECTS, SESSIONS, POMODORO_SETTINGS, DAILY_GOAL, LIVE_STATUS, STUDENT_STREAK } from '../constants';
 
 // --- SIMULATED DATABASE ---
 let tasks: Task[] = [...TASKS];
 let sessions: Session[] = [...SESSIONS];
 let activeSession: ActiveSession | null = null;
+let userFCMTokens: string[] = [];
 // --- END SIMULATED DATABASE ---
 
 const apiLatency = 500; // ms
@@ -179,4 +180,34 @@ export const addTask = async (newTaskData: Omit<Task, 'id' | 'status' | 'checkli
     };
     tasks.unshift(newTask); // Add to the beginning of the list for visibility
     return simulateApi(newTask);
+};
+
+export const updateChecklistItem = async (taskId: string, checklistItemId: string, done: boolean): Promise<Task> => {
+    let updatedTask: Task | undefined;
+    tasks = tasks.map(t => {
+        if (t.id === taskId) {
+            const newChecklist = t.checklist.map(item =>
+                item.id === checklistItemId ? { ...item, done } : item
+            );
+            updatedTask = { ...t, checklist: newChecklist };
+            return updatedTask;
+        }
+        return t;
+    });
+    if (!updatedTask) {
+        throw new Error("Task not found");
+    }
+    return simulateApi(updatedTask);
+};
+
+
+export const saveFCMToken = async (token: string): Promise<{success: boolean}> => {
+    if (!userFCMTokens.includes(token)) {
+        userFCMTokens.push(token);
+        console.log("FCM Token saved to mock DB:", token);
+        console.log("All tokens:", userFCMTokens);
+    } else {
+        console.log("FCM Token already exists.");
+    }
+    return simulateApi({success: true});
 };

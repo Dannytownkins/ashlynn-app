@@ -1,17 +1,20 @@
 import React from 'react';
 import { Task, Subject, TaskStatus } from '../types';
-import { Book, Clock, CheckCircle2, AlertCircle, RefreshCw, Send, Paperclip } from 'lucide-react';
+import { Book, Clock, CheckCircle2, AlertCircle, RefreshCw, Send, Paperclip, ChevronDown } from 'lucide-react';
 import SubjectPill from './SubjectPill';
 
 interface TaskCardProps {
   task: Task;
   subject?: Subject;
+  isExpanded: boolean;
+  onToggleExpand: (taskId: string) => void;
+  onChecklistItemToggle?: (taskId: string, checklistItemId: string, done: boolean) => void;
   onStartTask?: (taskId: string) => void;
   onViewEvidence?: (task: Task) => void;
   onSubmitTask?: (taskId: string) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, subject, onStartTask, onViewEvidence, onSubmitTask }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, subject, isExpanded, onToggleExpand, onChecklistItemToggle, onStartTask, onViewEvidence, onSubmitTask }) => {
   const getStatusIndicator = () => {
     switch (task.status) {
       case TaskStatus.Submitted:
@@ -28,13 +31,47 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, subject, onStartTask, onViewE
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 transition-shadow hover:shadow-md flex flex-col justify-between">
       <div>
-        <div className="flex justify-between items-start mb-2">
-          {subject && <SubjectPill subject={subject} />}
-          {getStatusIndicator()}
+        <div onClick={() => onToggleExpand(task.id)} className="cursor-pointer">
+          <div className="flex justify-between items-start mb-2">
+            {subject && <SubjectPill subject={subject} />}
+            <div className="flex items-center space-x-4">
+              {getStatusIndicator()}
+              <ChevronDown size={20} className={`text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+            </div>
+          </div>
+          <h3 className="font-bold text-slate-800 text-lg">{task.title}</h3>
         </div>
-        <h3 className="font-bold text-slate-800 text-lg">{task.title}</h3>
-        <p className="text-slate-600 text-sm mt-1 mb-3">{task.description}</p>
+
+        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isExpanded ? 'max-h-96 mt-3' : 'max-h-0'}`}>
+          <div className="pt-3 border-t border-slate-100">
+            <p className="text-slate-600 text-sm mb-4">{task.description}</p>
+            
+            <h4 className="text-sm font-semibold text-slate-600 mb-2">Checklist</h4>
+            {task.checklist.length > 0 ? (
+              <ul className="space-y-2">
+                {task.checklist.map(item => (
+                  <li key={item.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`${task.id}-${item.id}`}
+                      checked={item.done}
+                      onChange={(e) => onChecklistItemToggle?.(task.id, item.id, e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      disabled={!onChecklistItemToggle}
+                    />
+                    <label htmlFor={`${task.id}-${item.id}`} className={`ml-3 text-sm cursor-pointer ${item.done ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                      {item.label}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-400">No checklist items for this task.</p>
+            )}
+          </div>
+        </div>
       </div>
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-3 border-t border-slate-100 pt-3">
         <div className="flex items-center text-sm text-slate-500 mb-2 sm:mb-0">
           <Clock size={16} className="mr-2" />
