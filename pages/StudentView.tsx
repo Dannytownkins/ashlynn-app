@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Task, Subject, DailyStats, DailyGoal, ActiveSession, SessionType, Mood, TaskStatus } from '../types';
-import * as api from '../services/mockApi';
+import * as api from '../services/api';
 import TaskCard from '../components/TaskCard';
 import Timer from '../components/Timer';
 import ProgressRing from '../components/ProgressRing';
 import CheckInModal from '../components/CheckInModal';
-import ConfirmationModal from '../components/ConfirmationModal';
+import EvidenceSubmitModal from '../components/EvidenceSubmitModal';
 import { Award, Sun } from 'lucide-react';
 
 const StudentView: React.FC = () => {
@@ -99,17 +99,16 @@ const StudentView: React.FC = () => {
         }
     }, [tasks]);
 
-    const handleConfirmSubmit = async () => {
+    const handleConfirmSubmit = async (evidenceData: string, evidenceType: 'image' | 'link') => {
         if (!taskToSubmit) return;
-        
-        // In a real app, this would come from a file upload or link input
-        const dummyEvidenceUrl = `https://picsum.photos/seed/${taskToSubmit.id}/200/150`;
 
         try {
-            const updatedTask = await api.submitEvidence(taskToSubmit.id, dummyEvidenceUrl);
-            setTasks(prevTasks => prevTasks.map(t => t.id === updatedTask.id ? updatedTask : t));
+            await api.submitEvidence(taskToSubmit.id, evidenceData);
+            // Refresh data to get updated task
+            await fetchData();
         } catch (error) {
             console.error("Failed to submit task:", error);
+            alert("Failed to submit work. Please try again.");
         } finally {
             setTaskToSubmit(null);
         }
@@ -153,19 +152,11 @@ const StudentView: React.FC = () => {
     return (
         <div className="space-y-8">
             <CheckInModal isOpen={isCheckInModalOpen} onClose={() => setCheckInModalOpen(false)} onCheckIn={handleCheckIn} />
-            <ConfirmationModal
+            <EvidenceSubmitModal
                 isOpen={!!taskToSubmit}
                 onClose={() => setTaskToSubmit(null)}
-                onConfirm={handleConfirmSubmit}
-                title="Submit Your Work?"
-                message={
-                    <>
-                        Are you sure you want to mark <br />
-                        <span className="font-bold">"{taskToSubmit?.title}"</span>
-                        <br /> as complete and submit it for review?
-                    </>
-                }
-                confirmButtonText="Yes, Submit"
+                onSubmit={handleConfirmSubmit}
+                taskTitle={taskToSubmit?.title || ''}
             />
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

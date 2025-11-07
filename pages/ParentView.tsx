@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import * as api from '../services/mockApi';
+import * as api from '../services/api';
 import { Task, Subject, Session, TaskStatus } from '../types';
 import { Activity, CheckCircle, Smartphone, Clock, MessageSquare, AlertTriangle, PlusCircle, Link } from 'lucide-react';
 import SubjectPill from '../components/SubjectPill';
