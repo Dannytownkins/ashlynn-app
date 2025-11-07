@@ -2,9 +2,58 @@ import { Task, Subject, Session, ActiveSession, SessionType, DailyGoal, DailySta
 import { TASKS, SUBJECTS, SESSIONS, POMODORO_SETTINGS, DAILY_GOAL, LIVE_STATUS, STUDENT_STREAK } from '../constants';
 import { GoogleGenAI, Type } from '@google/genai';
 
-// --- SIMULATED DATABASE ---
-let tasks: Task[] = [...TASKS];
-let sessions: Session[] = [...SESSIONS];
+// --- SIMULATED DATABASE WITH LOCALSTORAGE PERSISTENCE ---
+const STORAGE_KEYS = {
+    TASKS: 'focusflow_tasks',
+    SESSIONS: 'focusflow_sessions',
+};
+
+// Initialize tasks from localStorage or use defaults
+const loadTasksFromStorage = (): Task[] => {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEYS.TASKS);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (error) {
+        console.error('Error loading tasks from localStorage:', error);
+    }
+    return [...TASKS];
+};
+
+// Save tasks to localStorage
+const saveTasksToStorage = (tasksToSave: Task[]) => {
+    try {
+        localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasksToSave));
+    } catch (error) {
+        console.error('Error saving tasks to localStorage:', error);
+    }
+};
+
+// Initialize sessions from localStorage or use defaults
+const loadSessionsFromStorage = (): Session[] => {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEYS.SESSIONS);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (error) {
+        console.error('Error loading sessions from localStorage:', error);
+    }
+    return [...SESSIONS];
+};
+
+// Save sessions to localStorage
+const saveSessionsToStorage = (sessionsToSave: Session[]) => {
+    try {
+        localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessionsToSave));
+    } catch (error) {
+        console.error('Error saving sessions to localStorage:', error);
+    }
+};
+
+let tasks: Task[] = loadTasksFromStorage();
+let sessions: Session[] = loadSessionsFromStorage();
 let activeSession: ActiveSession | null = null;
 let userFCMTokens: string[] = [];
 // --- END SIMULATED DATABASE ---
@@ -57,7 +106,7 @@ export const startSession = async (type: SessionType, durationMinutes: number, t
     if (activeSession) {
         await stopSession();
     }
-    
+
     const now = new Date();
     const newSession: ActiveSession = {
         id: `session-${Date.now()}`,
@@ -71,8 +120,9 @@ export const startSession = async (type: SessionType, durationMinutes: number, t
 
     if (taskId) {
         tasks = tasks.map(t => t.id === taskId ? { ...t, status: TaskStatus.InProgress } : t);
+        saveTasksToStorage(tasks);
     }
-    
+
     activeSession = newSession;
     return simulateApi(activeSession);
 };
@@ -86,8 +136,9 @@ export const stopSession = async (): Promise<Session | null> => {
         endedAt: now.toISOString(),
         durationMs: new Date(now).getTime() - new Date(activeSession.startedAt).getTime(),
     };
-    
+
     sessions.push(endedSession);
+    saveSessionsToStorage(sessions);
     activeSession = null;
     return simulateApi(endedSession);
 };
@@ -102,6 +153,7 @@ export const submitEvidence = async (taskId: string, evidenceUrl: string): Promi
         }
         return t;
     });
+    saveTasksToStorage(tasks);
     return simulateApi(updatedTask!);
 };
 
@@ -114,6 +166,7 @@ export const markTaskDone = async(taskId: string): Promise<Task> => {
         }
         return t;
     });
+    saveTasksToStorage(tasks);
     return simulateApi(updatedTask!);
 }
 
@@ -128,6 +181,7 @@ export const requestRework = async(taskId: string, note: string): Promise<Task> 
         }
         return t;
     });
+    saveTasksToStorage(tasks);
     return simulateApi(updatedTask!);
 }
 
@@ -180,6 +234,7 @@ export const addTask = async (newTaskData: Omit<Task, 'id' | 'status' | 'checkli
         checklist: [],
     };
     tasks.unshift(newTask); // Add to the beginning of the list for visibility
+    saveTasksToStorage(tasks);
     return simulateApi(newTask);
 };
 
@@ -198,6 +253,7 @@ export const updateChecklistItem = async (taskId: string, checklistItemId: strin
     if (!updatedTask) {
         throw new Error("Task not found");
     }
+    saveTasksToStorage(tasks);
     return simulateApi(updatedTask);
 };
 
@@ -270,6 +326,8 @@ export const breakdownTaskWithAI = async (taskId: string): Promise<Task> => {
     if (!updatedTask) {
         throw new Error("Failed to update task after AI generation");
     }
+
+    saveTasksToStorage(tasks);
 
     // No need to wrap in simulateApi as the Gemini call has latency
     return updatedTask;

@@ -1,86 +1,174 @@
 import React, { useState } from 'react';
-import { Task } from '../types';
+import { Subject } from '../types';
 import { Plus, X } from 'lucide-react';
-import { SUBJECTS } from '../constants';
 
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (taskData: Omit<Task, 'id' | 'status' | 'checklist' | 'evidenceUrl'>) => void;
+  onAddTask: (taskData: {
+    subjectId: string;
+    title: string;
+    description: string;
+    dueDate: string;
+    estimateMins: number;
+  }) => void;
+  subjects: Subject[];
 }
 
-const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onAddTask }) => {
+const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onAddTask, subjects }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [subjectId, setSubjectId] = useState(SUBJECTS[0]?.id || '');
+    const [subjectId, setSubjectId] = useState(subjects[0]?.id || '');
     const [estimateMins, setEstimateMins] = useState(25);
-    const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
-
-    if (!isOpen) return null;
+    const [dueDate, setDueDate] = useState(() => {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
+    });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title.trim() || !subjectId) {
-            alert("Title and subject are required.");
+
+        if (!title.trim() || !description.trim()) {
+            alert('Please fill in all required fields');
             return;
         }
+
         onAddTask({
-            title,
-            description,
             subjectId,
-            estimateMins,
+            title: title.trim(),
+            description: description.trim(),
             dueDate: new Date(dueDate).toISOString(),
+            estimateMins,
         });
-        // Reset form for next time it's opened
+
+        // Reset form
         setTitle('');
         setDescription('');
-        setSubjectId(SUBJECTS[0]?.id || '');
-        setEstimateMins(25);
+        setSubjectId(subjects[0]?.id || '');
         setDueDate(new Date().toISOString().split('T')[0]);
+        setEstimateMins(25);
+        onClose();
     };
 
+    if (!isOpen) return null;
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-lg transform transition-all animate-fade-in-up">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-slate-800">Add New Task</h2>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-full transition-colors">
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-800/90 backdrop-blur-lg rounded-2xl shadow-2xl shadow-purple-500/20 border border-purple-500/30 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-slate-800/95 backdrop-blur-lg border-b border-purple-500/20 p-6 flex items-center justify-between">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Add New Task
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="text-slate-400 hover:text-slate-200 transition-colors"
+                    >
                         <X size={24} />
                     </button>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
+
+                <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                    {/* Task Title */}
                     <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                        <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                        <label htmlFor="task-title" className="block text-sm font-semibold text-slate-300 mb-2">
+                            Task Title *
+                        </label>
+                        <input
+                            id="task-title"
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="e.g., Math homework chapter 5"
+                            className="w-full px-4 py-2.5 bg-slate-700/50 border border-purple-500/30 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                            required
+                        />
                     </div>
+
+                    {/* Description */}
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                        <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        <label htmlFor="task-description" className="block text-sm font-semibold text-slate-300 mb-2">
+                            Description *
+                        </label>
+                        <textarea
+                            id="task-description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Describe what needs to be done..."
+                            rows={4}
+                            className="w-full px-4 py-2.5 bg-slate-700/50 border border-purple-500/30 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all resize-none"
+                            required
+                        />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                    {/* Subject */}
+                    <div>
+                        <label htmlFor="task-subject" className="block text-sm font-semibold text-slate-300 mb-2">
+                            Subject
+                        </label>
+                        <select
+                            id="task-subject"
+                            value={subjectId}
+                            onChange={(e) => setSubjectId(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-slate-700/50 border border-purple-500/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all cursor-pointer"
+                        >
+                            {subjects.map(subject => (
+                                <option key={subject.id} value={subject.id}>
+                                    {subject.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Due Date and Time Estimate Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Due Date */}
                         <div>
-                            <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
-                            <select id="subject" value={subjectId} onChange={e => setSubjectId(e.target.value)} className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                {SUBJECTS.map(sub => (
-                                    <option key={sub.id} value={sub.id}>{sub.name}</option>
-                                ))}
-                            </select>
+                            <label htmlFor="task-due-date" className="block text-sm font-semibold text-slate-300 mb-2">
+                                Due Date
+                            </label>
+                            <input
+                                id="task-due-date"
+                                type="date"
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
+                                className="w-full px-4 py-2.5 bg-slate-700/50 border border-purple-500/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                required
+                            />
                         </div>
-                         <div>
-                            <label htmlFor="estimateMins" className="block text-sm font-medium text-slate-700 mb-1">Est. Mins</label>
-                            <input type="number" id="estimateMins" value={estimateMins} onChange={e => setEstimateMins(parseInt(e.target.value, 10))} className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" min="5" step="5" />
-                        </div>
+
+                        {/* Time Estimate */}
                         <div>
-                            <label htmlFor="dueDate" className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
-                            <input type="date" id="dueDate" value={dueDate} onChange={e => setDueDate(e.target.value)} className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                            <label htmlFor="task-estimate" className="block text-sm font-semibold text-slate-300 mb-2">
+                                Time (minutes)
+                            </label>
+                            <input
+                                id="task-estimate"
+                                type="number"
+                                min="5"
+                                max="480"
+                                step="5"
+                                value={estimateMins}
+                                onChange={(e) => setEstimateMins(parseInt(e.target.value) || 25)}
+                                className="w-full px-4 py-2.5 bg-slate-700/50 border border-purple-500/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                required
+                            />
                         </div>
                     </div>
-                     <div className="flex justify-end space-x-3 pt-4">
-                        <button type="button" onClick={onClose} className="py-2 px-4 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+
+                    {/* Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 px-6 py-3 bg-slate-700/50 text-slate-300 font-semibold rounded-lg hover:bg-slate-700 transition-all border border-slate-600/50"
+                        >
                             Cancel
                         </button>
-                         <button type="submit" className="flex items-center justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-shadow">
-                            <Plus size={18} className="mr-2" />
+                        <button
+                            type="submit"
+                            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 flex items-center justify-center"
+                        >
+                            <Plus size={20} className="mr-2" />
                             Add Task
                         </button>
                     </div>

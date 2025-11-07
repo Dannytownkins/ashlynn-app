@@ -6,7 +6,8 @@ import Timer from '../components/Timer';
 import ProgressRing from '../components/ProgressRing';
 import CheckInModal from '../components/CheckInModal';
 import ConfirmationModal from '../components/ConfirmationModal';
-import { Award, Sun } from 'lucide-react';
+import AddTaskModal from '../components/AddTaskModal';
+import { Award, Sun, Plus } from 'lucide-react';
 
 const StudentView: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -19,6 +20,7 @@ const StudentView: React.FC = () => {
     const [taskToSubmit, setTaskToSubmit] = useState<Task | null>(null);
     const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
     const [breakingDownTaskId, setBreakingDownTaskId] = useState<string | null>(null);
+    const [isAddTaskModalOpen, setAddTaskModalOpen] = useState(false);
     
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -141,10 +143,26 @@ const StudentView: React.FC = () => {
         }
     };
 
+    const handleAddTask = async (taskData: {
+        subjectId: string;
+        title: string;
+        description: string;
+        dueDate: string;
+        estimateMins: number;
+    }) => {
+        try {
+            const newTask = await api.addTask(taskData);
+            setTasks(prevTasks => [newTask, ...prevTasks]);
+        } catch (error) {
+            console.error("Failed to add task:", error);
+            alert("Sorry, couldn't add the task. Please try again.");
+        }
+    };
+
     const getSubjectById = (id: string) => subjects.find(s => s.id === id);
 
     if (isLoading) {
-        return <div className="text-center p-10">Loading Ashlynn's day...</div>;
+        return <div className="text-center p-10 text-slate-300">Loading Ashlynn's day...</div>;
     }
 
     const minutesProgress = goal && stats ? Math.min((stats.focusedMinutes / goal.minutes) * 100, 100) : 0;
@@ -169,15 +187,15 @@ const StudentView: React.FC = () => {
             />
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-1">Hello, Ashlynn!</h2>
-                    <p className="text-slate-500">Here's your plan for today. Let's make it a great one.</p>
+                <div className="md:col-span-2 bg-slate-800/50 backdrop-blur-lg p-6 rounded-xl shadow-lg shadow-purple-500/10 border border-purple-500/20">
+                    <h2 className="text-2xl font-bold text-slate-100 mb-1">Hello, Ashlynn!</h2>
+                    <p className="text-slate-300">Here's your plan for today. Let's make it a great one.</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center space-x-4">
+                <div className="bg-slate-800/50 backdrop-blur-lg p-4 rounded-xl shadow-lg shadow-purple-500/10 border border-purple-500/20 flex items-center justify-center space-x-4">
                     <Award className="w-10 h-10 text-amber-500" />
                     <div>
-                        <div className="text-2xl font-bold text-slate-800">{stats?.streak || 0} Day Streak</div>
-                        <p className="text-sm text-slate-500">Keep up the great work!</p>
+                        <div className="text-2xl font-bold text-slate-100">{stats?.streak || 0} Day Streak</div>
+                        <p className="text-sm text-slate-300">Keep up the great work!</p>
                     </div>
                 </div>
             </div>
@@ -191,8 +209,8 @@ const StudentView: React.FC = () => {
                         onTimerEnd={handleTimerEnd}
                     />
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
-                    <h3 className="text-lg font-semibold text-slate-700 mb-4">Daily Progress</h3>
+                <div className="bg-slate-800/50 backdrop-blur-lg p-6 rounded-xl shadow-lg shadow-purple-500/10 border border-purple-500/20 flex flex-col items-center justify-center">
+                    <h3 className="text-lg font-semibold text-slate-100 mb-4">Daily Progress</h3>
                     <div className="flex space-x-6">
                         <ProgressRing progress={minutesProgress} label="Minutes" value={`${stats?.focusedMinutes || 0}/${goal?.minutes || '?'}`} />
                         <ProgressRing progress={tasksProgress} label="Tasks" value={`${stats?.tasksCompleted || 0}/${goal?.tasks || '?'}`} />
@@ -201,12 +219,23 @@ const StudentView: React.FC = () => {
             </div>
 
             <div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center"><Sun size={24} className="mr-3 text-yellow-500"/> Today's Plan</h2>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-slate-100 flex items-center">
+                        <Sun size={24} className="mr-3 text-yellow-500"/> Today's Plan
+                    </h2>
+                    <button
+                        onClick={() => setAddTaskModalOpen(true)}
+                        className="flex items-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70"
+                    >
+                        <Plus size={20} className="mr-2" />
+                        Add Task
+                    </button>
+                </div>
                 <div className="space-y-4">
                     {tasks.length > 0 ? tasks.map(task => (
-                        <TaskCard 
-                            key={task.id} 
-                            task={task} 
+                        <TaskCard
+                            key={task.id}
+                            task={task}
                             subject={getSubjectById(task.subjectId)}
                             isExpanded={task.id === expandedTaskId}
                             onToggleExpand={handleToggleExpand}
@@ -217,12 +246,26 @@ const StudentView: React.FC = () => {
                             isBreakingDown={task.id === breakingDownTaskId}
                         />
                     )) : (
-                        <div className="text-center py-10 bg-white rounded-lg shadow-sm">
-                            <p className="text-slate-500">No tasks for today. Great job!</p>
+                        <div className="text-center py-10 bg-slate-800/50 backdrop-blur-lg rounded-lg shadow-lg shadow-purple-500/10 border border-purple-500/20">
+                            <p className="text-slate-300 mb-4">No tasks for today. Add your first task to get started!</p>
+                            <button
+                                onClick={() => setAddTaskModalOpen(true)}
+                                className="inline-flex items-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70"
+                            >
+                                <Plus size={20} className="mr-2" />
+                                Add Your First Task
+                            </button>
                         </div>
                     )}
                 </div>
             </div>
+
+            <AddTaskModal
+                isOpen={isAddTaskModalOpen}
+                onClose={() => setAddTaskModalOpen(false)}
+                onAddTask={handleAddTask}
+                subjects={subjects}
+            />
         </div>
     );
 };
