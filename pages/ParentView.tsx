@@ -64,7 +64,13 @@ const ParentView: React.FC = () => {
         }
     }
     
-    const handleAddTask = async (taskData: Omit<Task, 'id' | 'status' | 'checklist' | 'evidenceUrl'>) => {
+    const handleAddTask = async (taskData: {
+        subjectId: string;
+        title: string;
+        description: string;
+        dueDate: string;
+        estimateMins: number;
+    }) => {
         try {
             await api.addTask(taskData);
             setAddTaskModalOpen(false);
@@ -94,7 +100,7 @@ const ParentView: React.FC = () => {
     };
 
     if (isLoading && !liveStatus) {
-        return <div className="text-center p-10">Loading Dan's dashboard...</div>;
+        return <div className="text-center p-10 text-slate-300">Loading Dan's dashboard...</div>;
     }
     
     const StatusIndicator = () => {
@@ -103,29 +109,30 @@ const ParentView: React.FC = () => {
         const isFocusing = liveStatus.studentState === 'Focusing';
 
         return (
-            <div className={`p-6 rounded-xl shadow-sm border ${isIdle ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+            <div className={`p-6 rounded-xl shadow-lg border backdrop-blur-lg ${isIdle ? 'bg-amber-900/30 border-amber-500/30 shadow-amber-500/10' : 'bg-green-900/30 border-green-500/30 shadow-green-500/10'}`}>
                 <div className="flex items-center">
                     <div className={`w-4 h-4 rounded-full mr-3 ${isIdle ? 'bg-amber-500' : 'bg-green-500'} ${isFocusing ? 'animate-pulse' : ''}`}></div>
-                    <h3 className="text-xl font-bold">{liveStatus.studentState}</h3>
+                    <h3 className="text-xl font-bold text-slate-100">{liveStatus.studentState}</h3>
                 </div>
-                {liveStatus.activeTask && <p className="mt-2 text-slate-600">Working on: <span className="font-semibold">{liveStatus.activeTask}</span></p>}
-                <p className="text-sm text-slate-500 mt-1">Last activity at {liveStatus.lastActivity}</p>
+                {liveStatus.activeTask && <p className="mt-2 text-slate-300">Working on: <span className="font-semibold text-slate-100">{liveStatus.activeTask}</span></p>}
+                <p className="text-sm text-slate-400 mt-1">Last activity at {liveStatus.lastActivity}</p>
             </div>
         )
     };
 
     return (
         <div className="space-y-8">
-             <AddTaskModal 
+             <AddTaskModal
                 isOpen={isAddTaskModalOpen}
                 onClose={() => setAddTaskModalOpen(false)}
                 onAddTask={handleAddTask}
+                subjects={subjects}
             />
             <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-bold text-slate-800">Parent Dashboard</h2>
+                <h2 className="text-3xl font-bold text-slate-100">Parent Dashboard</h2>
                 <button
                     onClick={() => setAddTaskModalOpen(true)}
-                    className="flex items-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-shadow shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="flex items-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70"
                 >
                     <PlusCircle size={18} className="mr-2"/>
                     Add Task
@@ -136,43 +143,43 @@ const ParentView: React.FC = () => {
                 <div className="lg:col-span-2">
                     <StatusIndicator />
                 </div>
-                <div className="bg-red-50 border-red-200 border p-4 rounded-xl shadow-sm flex flex-col justify-center items-center text-center">
-                    <AlertTriangle className="w-8 h-8 text-red-500 mb-2"/>
-                    <p className="text-red-800 font-semibold mb-2">No start yet?</p>
-                    <button onClick={handleEnforceDowntime} className="flex items-center bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition-shadow shadow-sm hover:shadow-md">
+                <div className="bg-red-900/30 border-red-500/30 border backdrop-blur-lg p-4 rounded-xl shadow-lg shadow-red-500/10 flex flex-col justify-center items-center text-center">
+                    <AlertTriangle className="w-8 h-8 text-red-400 mb-2"/>
+                    <p className="text-red-200 font-semibold mb-2">No start yet?</p>
+                    <button onClick={handleEnforceDowntime} className="flex items-center bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition-all shadow-lg shadow-red-500/50 hover:shadow-red-500/70">
                         <Smartphone size={16} className="mr-2" /> Enforce Downtime
                     </button>
                 </div>
             </div>
 
             <div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center"><CheckCircle size={24} className="mr-3 text-green-500"/> Needs Review</h3>
+                <h3 className="text-2xl font-bold text-slate-100 mb-4 flex items-center"><CheckCircle size={24} className="mr-3 text-green-400"/> Needs Review</h3>
                  <div className="space-y-4">
                     {submittedTasks.length > 0 ? submittedTasks.map(task => (
-                        <div key={task.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-                            <h4 className="font-bold text-slate-800 text-lg">{task.title}</h4>
+                        <div key={task.id} className="bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg shadow-purple-500/10 border border-purple-500/20 p-4">
+                            <h4 className="font-bold text-slate-100 text-lg">{task.title}</h4>
                             <div className="flex items-center text-sm my-2">
                                {getSubjectById(task.subjectId) && <SubjectPill subject={getSubjectById(task.subjectId)!} />}
-                               <span className={`ml-3 font-semibold ${task.status === TaskStatus.Rework ? 'text-amber-600' : 'text-green-600'}`}>{task.status === TaskStatus.Rework ? 'Rework Requested' : 'Submitted'}</span>
+                               <span className={`ml-3 font-semibold ${task.status === TaskStatus.Rework ? 'text-amber-400' : 'text-green-400'}`}>{task.status === TaskStatus.Rework ? 'Rework Requested' : 'Submitted'}</span>
                             </div>
-                            
+
                             {task.evidenceUrl && (
-                                <div className="my-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                                    <h5 className="text-sm font-semibold text-slate-600 mb-2">Submitted Evidence</h5>
+                                <div className="my-3 p-3 bg-slate-700/50 rounded-lg border border-purple-500/20">
+                                    <h5 className="text-sm font-semibold text-slate-300 mb-2">Submitted Evidence</h5>
                                     {isImageUrl(task.evidenceUrl) ? (
                                         <a href={task.evidenceUrl} target="_blank" rel="noopener noreferrer">
-                                            <img 
-                                                src={task.evidenceUrl} 
-                                                alt={`Evidence for ${task.title}`} 
-                                                className="rounded-lg max-h-48 w-auto border border-slate-300 hover:opacity-90 transition-opacity" 
+                                            <img
+                                                src={task.evidenceUrl}
+                                                alt={`Evidence for ${task.title}`}
+                                                className="rounded-lg max-h-48 w-auto border border-purple-500/30 hover:opacity-90 transition-opacity"
                                             />
                                         </a>
                                     ) : (
-                                        <a 
-                                            href={task.evidenceUrl} 
-                                            target="_blank" 
+                                        <a
+                                            href={task.evidenceUrl}
+                                            target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                                            className="flex items-center text-purple-400 hover:text-purple-300 hover:underline font-medium"
                                         >
                                             <Link size={16} className="mr-2 flex-shrink-0" />
                                             <span className="truncate">{task.evidenceUrl}</span>
@@ -181,28 +188,28 @@ const ParentView: React.FC = () => {
                                 </div>
                             )}
 
-                             <div className="flex items-center space-x-2 mt-3 border-t border-slate-100 pt-3">
-                                 <button onClick={() => handleApproveTask(task.id)} className="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition-shadow">Approve</button>
-                                 <button onClick={() => handleReworkTask(task.id)} className="bg-amber-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-amber-600 transition-shadow">Request Rework</button>
+                             <div className="flex flex-wrap items-center gap-2 mt-3 border-t border-purple-500/20 pt-3">
+                                 <button onClick={() => handleApproveTask(task.id)} className="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-all shadow-lg shadow-green-500/50 hover:shadow-green-500/70">Approve</button>
+                                 <button onClick={() => handleReworkTask(task.id)} className="bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-amber-700 transition-all shadow-lg shadow-amber-500/50 hover:shadow-amber-500/70">Request Rework</button>
                              </div>
                         </div>
                     )) : (
-                        <div className="text-center py-10 bg-white rounded-lg shadow-sm">
-                            <p className="text-slate-500">Nothing to review right now.</p>
+                        <div className="text-center py-10 bg-slate-800/50 backdrop-blur-lg rounded-lg shadow-lg shadow-purple-500/10 border border-purple-500/20">
+                            <p className="text-slate-300">Nothing to review right now.</p>
                         </div>
                     )}
                 </div>
             </div>
 
             <div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center"><Activity size={24} className="mr-3 text-indigo-500"/> Recent Activity</h3>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                <h3 className="text-2xl font-bold text-slate-100 mb-4 flex items-center"><Activity size={24} className="mr-3 text-indigo-400"/> Recent Activity</h3>
+                <div className="bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg shadow-purple-500/10 border border-purple-500/20 p-4">
                     <ul className="space-y-3">
-                        {recentSessions.map(session => (
+                        {recentSessions.length > 0 ? recentSessions.map(session => (
                             <li key={session.id} className="flex items-center text-sm">
                                 <Clock size={16} className="mr-3 text-slate-400"/>
-                                <div>
-                                    <span className="font-semibold">{session.type === 'focus' ? 'Focus' : 'Break'} Session</span>
+                                <div className="text-slate-300">
+                                    <span className="font-semibold text-slate-100">{session.type === 'focus' ? 'Focus' : 'Break'} Session</span>
                                     <span className="text-slate-500 mx-2">&middot;</span>
                                     {getSubjectById(session.subjectId)?.name}
                                     <span className="text-slate-500 mx-2">&middot;</span>
@@ -210,7 +217,9 @@ const ParentView: React.FC = () => {
                                 </div>
                                 <span className="ml-auto text-xs text-slate-400">{new Date(session.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </li>
-                        ))}
+                        )) : (
+                            <li className="text-center text-slate-400 py-4">No recent activity</li>
+                        )}
                     </ul>
                 </div>
             </div>
