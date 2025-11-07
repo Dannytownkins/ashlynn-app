@@ -42,7 +42,11 @@ const App: React.FC = () => {
   const NavItem = ({ icon, label, currentView, targetView }: { icon: React.ElementType, label: string, currentView: View, targetView: View }) => (
     <button
       onClick={() => setView(targetView)}
-      className={`flex flex-col items-center justify-center space-y-1 w-full text-xs transition-colors duration-200 ${currentView === targetView ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-500'}`}
+      className={`flex flex-col items-center justify-center space-y-1 w-full text-xs transition-all duration-200 ${
+        currentView === targetView
+          ? 'text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]'
+          : 'text-slate-400 hover:text-purple-300'
+      }`}
     >
       {React.createElement(icon, { size: 22, strokeWidth: currentView === targetView ? 2.5 : 2 })}
       <span>{label}</span>
@@ -50,32 +54,44 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
-      <header className="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-10 p-3 flex justify-between items-center border-b border-slate-200">
-        <h1 className="text-xl font-bold text-indigo-600">FocusFlow</h1>
-        <RoleSwitcher role={role} onRoleChange={handleRoleChange} />
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 font-sans flex flex-col relative overflow-hidden">
+      {/* Animated gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
 
-      <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-        {renderView()}
-      </main>
+      {/* Mesh gradient background */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
 
-      <nav className="sticky bottom-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 p-2 md:hidden flex justify-around">
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <header className="sticky top-0 bg-slate-900/80 backdrop-blur-lg shadow-lg shadow-purple-500/10 z-20 p-3 flex justify-between items-center border-b border-purple-500/20">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">FocusFlow</h1>
+          <RoleSwitcher role={role} onRoleChange={handleRoleChange} />
+        </header>
+
+        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
+          {renderView()}
+        </main>
+
+        <nav className="sticky bottom-0 bg-slate-900/90 backdrop-blur-lg border-t border-purple-500/20 p-2 md:hidden flex justify-around shadow-lg shadow-purple-500/10">
+            <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
+            <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
+            <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
+        </nav>
+
+        {/* Desktop sidebar - shown for md screens and up */}
+        <div className="hidden md:flex fixed top-0 left-0 h-full w-20 bg-slate-900/90 backdrop-blur-lg border-r border-purple-500/20 flex-col items-center pt-24 space-y-8 shadow-lg shadow-purple-500/10 z-20">
           <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
           <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
           <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
-      </nav>
-      
-      {/* Desktop sidebar - shown for md screens and up */}
-      <div className="hidden md:flex fixed top-0 left-0 h-full w-20 bg-white border-r border-slate-200 flex-col items-center pt-24 space-y-8">
-        <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
-        <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
-        <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
-      </div>
-      
-      <div className="md:pl-20"> {/* This pushes the main content to the right of the desktop sidebar */}
-        <div className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-            {renderView()}
+        </div>
+
+        <div className="md:pl-20"> {/* This pushes the main content to the right of the desktop sidebar */}
+          <div className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
+              {renderView()}
+          </div>
         </div>
       </div>
     </div>
