@@ -173,7 +173,7 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
                   value={config.projectId}
                   onChange={(e) => handleInputChange('projectId', e.target.value)}
                   placeholder="e.g., focusflow-app-12345"
-                  className="w-full p-3 border-2 border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className="w-full p-3 border-2 border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none text-slate-800"
                 />
               </div>
             </div>
@@ -222,7 +222,7 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
                       value={config.apiKey}
                       onChange={(e) => handleInputChange('apiKey', e.target.value)}
                       placeholder="AIza..."
-                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none text-slate-800"
                     />
                   </div>
                   <div>
@@ -232,7 +232,7 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
                       value={config.authDomain}
                       onChange={(e) => handleInputChange('authDomain', e.target.value)}
                       placeholder="your-project.firebaseapp.com"
-                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none text-slate-800"
                     />
                   </div>
                   <div>
@@ -242,7 +242,7 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
                       value={config.storageBucket}
                       onChange={(e) => handleInputChange('storageBucket', e.target.value)}
                       placeholder="your-project.appspot.com"
-                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none text-slate-800"
                     />
                   </div>
                   <div>
@@ -252,7 +252,7 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
                       value={config.messagingSenderId}
                       onChange={(e) => handleInputChange('messagingSenderId', e.target.value)}
                       placeholder="123456789012"
-                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none text-slate-800"
                     />
                   </div>
                   <div>
@@ -262,7 +262,7 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
                       value={config.appId}
                       onChange={(e) => handleInputChange('appId', e.target.value)}
                       placeholder="1:123456789012:web:abc123..."
-                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                      className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none text-slate-800"
                     />
                   </div>
                 </div>
@@ -313,7 +313,7 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
                     value={config.vapidKey}
                     onChange={(e) => handleInputChange('vapidKey', e.target.value)}
                     placeholder="BNdD..."
-                    className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-green-500 focus:outline-none"
+                    className="w-full p-2 text-sm border-2 border-slate-300 rounded-lg focus:border-green-500 focus:outline-none text-slate-800"
                   />
                 </div>
               </div>
