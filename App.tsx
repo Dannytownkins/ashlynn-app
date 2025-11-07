@@ -6,18 +6,30 @@ import ParentView from './pages/ParentView';
 import ReportsView from './pages/ReportsView';
 import SettingsView from './pages/SettingsView';
 import { BookOpen, BarChart2, Settings, Users } from 'lucide-react';
-import { initializeFirebaseAndAskForPermission } from './services/firebase';
+import { initializeFirebaseAndAskForPermission } from './services/api';
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.Student);
   const [view, setView] = useState<View>(View.Home);
 
   useEffect(() => {
-    // This effect runs once on mount to initialize notifications
-    if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
-      initializeFirebaseAndAskForPermission();
-    } else {
-      console.warn('Push messaging is not supported by this browser.');
+    // Register service worker for PWA and push notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration);
+
+          // Initialize push notifications if supported
+          if ('Notification' in window && 'PushManager' in window) {
+            initializeFirebaseAndAskForPermission();
+          } else {
+            console.warn('Push messaging is not supported by this browser.');
+          }
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
     }
   }, []);
 

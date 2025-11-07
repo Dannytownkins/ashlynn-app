@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Session, Subject, SessionType } from '../types';
-import * as api from '../services/mockApi';
+import * as api from '../services/api';
 
 const ReportsView: React.FC = () => {
     const [sessions, setSessions] = useState<Session[]>([]);
