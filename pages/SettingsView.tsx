@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Bell, Clock, Target, Link, CheckCircle2, XCircle, AlertTriangle, Trash2 } from 'lucide-react';
+import { Bell, Clock, Target, Link, CheckCircle2, XCircle, AlertTriangle, Trash2, Save } from 'lucide-react';
 import FirebaseSetupWizard from '../components/FirebaseSetupWizard';
+import * as api from '../services/mockApi';
 import {
   isFirebaseConfigured,
   getFirebaseConfig,
@@ -24,6 +25,8 @@ const SettingsView: React.FC = () => {
     checkIns: true,
     dailyReport: false,
   });
+  const [dailyGoalMinutes, setDailyGoalMinutes] = useState(90);
+  const [dailyGoalTasks, setDailyGoalTasks] = useState(3);
 
   useEffect(() => {
     // Check if Firebase is configured
@@ -34,6 +37,12 @@ const SettingsView: React.FC = () => {
     if ('Notification' in window) {
       setNotificationPermission(Notification.permission);
     }
+
+    // Load daily goal
+    api.getDailyGoal().then(goal => {
+      setDailyGoalMinutes(goal.minutes);
+      setDailyGoalTasks(goal.tasks);
+    });
   }, []);
 
   const handleSetupComplete = async (config: FirebaseConfig) => {
@@ -70,6 +79,16 @@ const SettingsView: React.FC = () => {
   const toggleNotificationSetting = (key: keyof typeof notificationSettings) => {
     setNotificationSettings({ ...notificationSettings, [key]: !notificationSettings[key] });
     // In a real app, you would save these preferences to your backend
+  };
+
+  const handleSaveDailyGoal = async () => {
+    try {
+      await api.updateDailyGoal(dailyGoalMinutes, dailyGoalTasks);
+      alert('Daily goal saved successfully!');
+    } catch (error) {
+      console.error('Failed to save daily goal:', error);
+      alert('Could not save daily goal. Please try again.');
+    }
   };
 
   const SettingRow = ({ icon, title, description, children }: { icon: React.ElementType, title: string, description: string, children: React.ReactNode }) => (
@@ -115,11 +134,32 @@ const SettingsView: React.FC = () => {
         <h3 className="text-xl font-bold text-slate-100 mb-4">General</h3>
 
         <SettingRow icon={Target} title="Daily Goals" description="Set targets for focus minutes and tasks.">
-           <div className="flex items-center space-x-2 text-slate-300">
-                <input type="number" defaultValue="90" className="w-20 p-2 bg-slate-700/50 border border-purple-500/30 rounded-md text-slate-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"/>
+           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+             <div className="flex items-center space-x-2 text-slate-300">
+                <input
+                  type="number"
+                  value={dailyGoalMinutes}
+                  onChange={(e) => setDailyGoalMinutes(parseInt(e.target.value) || 0)}
+                  min="1"
+                  className="w-20 p-2 bg-slate-700/50 border border-purple-500/30 rounded-md text-slate-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
                 <span>minutes</span>
-                <input type="number" defaultValue="3" className="w-20 p-2 bg-slate-700/50 border border-purple-500/30 rounded-md text-slate-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"/>
+                <input
+                  type="number"
+                  value={dailyGoalTasks}
+                  onChange={(e) => setDailyGoalTasks(parseInt(e.target.value) || 0)}
+                  min="1"
+                  className="w-20 p-2 bg-slate-700/50 border border-purple-500/30 rounded-md text-slate-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
                 <span>tasks</span>
+             </div>
+             <button
+               onClick={handleSaveDailyGoal}
+               className="flex items-center px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 font-medium transition-all shadow-lg shadow-purple-500/50 text-sm"
+             >
+               <Save size={16} className="mr-1" />
+               Save
+             </button>
            </div>
         </SettingRow>
 

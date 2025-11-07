@@ -94,9 +94,39 @@ export const getDailyStats = async (): Promise<DailyStats> => {
     });
 };
 
+// Save daily goal to localStorage
+const saveDailyGoalToStorage = (goal: DailyGoal) => {
+    try {
+        localStorage.setItem('focusflow_daily_goal', JSON.stringify(goal));
+    } catch (error) {
+        console.error('Error saving daily goal to localStorage:', error);
+    }
+};
+
+// Load daily goal from localStorage
+const loadDailyGoalFromStorage = (): DailyGoal => {
+    try {
+        const stored = localStorage.getItem('focusflow_daily_goal');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (error) {
+        console.error('Error loading daily goal from localStorage:', error);
+    }
+    return DAILY_GOAL;
+};
+
+let dailyGoal: DailyGoal = loadDailyGoalFromStorage();
+
 export const getDailyGoal = async (): Promise<DailyGoal> => {
-    return simulateApi(DAILY_GOAL);
-}
+    return simulateApi(dailyGoal);
+};
+
+export const updateDailyGoal = async (minutes: number, tasks: number): Promise<DailyGoal> => {
+    dailyGoal = { minutes, tasks };
+    saveDailyGoalToStorage(dailyGoal);
+    return simulateApi(dailyGoal);
+};
 
 export const getPomodoroSettings = async () => {
     return simulateApi(POMODORO_SETTINGS);
@@ -236,6 +266,32 @@ export const addTask = async (newTaskData: Omit<Task, 'id' | 'status' | 'checkli
     tasks.unshift(newTask); // Add to the beginning of the list for visibility
     saveTasksToStorage(tasks);
     return simulateApi(newTask);
+};
+
+export const updateTask = async (taskId: string, updatedData: Omit<Task, 'id' | 'status' | 'checklist' | 'evidenceUrl'>): Promise<Task> => {
+    let updatedTask: Task | undefined;
+    tasks = tasks.map(t => {
+        if (t.id === taskId) {
+            updatedTask = { ...t, ...updatedData };
+            return updatedTask;
+        }
+        return t;
+    });
+    if (!updatedTask) {
+        throw new Error("Task not found");
+    }
+    saveTasksToStorage(tasks);
+    return simulateApi(updatedTask);
+};
+
+export const deleteTask = async (taskId: string): Promise<boolean> => {
+    const initialLength = tasks.length;
+    tasks = tasks.filter(t => t.id !== taskId);
+    if (tasks.length === initialLength) {
+        throw new Error("Task not found");
+    }
+    saveTasksToStorage(tasks);
+    return simulateApi(true);
 };
 
 export const updateChecklistItem = async (taskId: string, checklistItemId: string, done: boolean): Promise<Task> => {
