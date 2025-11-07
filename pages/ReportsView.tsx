@@ -56,15 +56,15 @@ const ReportsView: React.FC = () => {
     };
 
     if (isLoading) {
-        return <div className="text-center p-10">Loading reports...</div>;
+        return <div className="text-center p-10 text-slate-300">Loading reports...</div>;
     }
 
     return (
         <div className="space-y-8">
-            <h2 className="text-3xl font-bold text-slate-800">Reports</h2>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Reports</h2>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-xl font-bold text-slate-800 mb-6">Time Spent per Subject (Minutes)</h3>
+            <div className="bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg shadow-purple-500/10 border border-purple-500/20 p-6">
+                <h3 className="text-xl font-bold text-slate-100 mb-6">Time Spent per Subject (Minutes)</h3>
                 <div style={{ width: '100%', height: 300 }}>
                     <ResponsiveContainer>
                         <BarChart
@@ -73,26 +73,40 @@ const ReportsView: React.FC = () => {
                                 top: 5, right: 20, left: -10, bottom: 5,
                             }}
                         >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis dataKey="name" tick={{fill: '#475569', fontSize: 12}}/>
-                            <YAxis tick={{fill: '#475569', fontSize: 12}}/>
+                            <defs>
+                                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#a855f7" stopOpacity={1}/>
+                                    <stop offset="100%" stopColor="#6366f1" stopOpacity={1}/>
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#6366f150" />
+                            <XAxis dataKey="name" tick={{fill: '#cbd5e1', fontSize: 12}}/>
+                            <YAxis tick={{fill: '#cbd5e1', fontSize: 12}}/>
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'white',
-                                    border: '1px solid #e2e8f0',
+                                    backgroundColor: '#1e293b',
+                                    border: '1px solid #7c3aed50',
                                     borderRadius: '0.75rem',
+                                    color: '#e2e8f0'
                                 }}
                             />
-                            <Bar dataKey="minutes" name="Focused Minutes" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="minutes" name="Focused Minutes" fill="url(#colorGradient)" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
             
-            <div className="text-center">
-                 <button className="bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 transition-shadow">
-                    Export CSV (TODO)
-                 </button>
+            <div className="bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg shadow-purple-500/10 border border-purple-500/20 p-6">
+                <h3 className="text-xl font-bold text-slate-100 mb-4">About This Data</h3>
+                <p className="text-slate-300 text-sm mb-4">
+                    These reports show time spent on tasks during focus sessions. The data updates as Ashlynn completes tasks and logs study time.
+                    Currently showing data from {sessions.length} session{sessions.length !== 1 ? 's' : ''}.
+                </p>
+                <div className="text-center">
+                    <button className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/50">
+                        Export CSV (Coming Soon)
+                    </button>
+                </div>
             </div>
         </div>
     );

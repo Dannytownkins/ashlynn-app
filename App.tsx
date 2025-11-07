@@ -71,7 +71,14 @@ const App: React.FC = () => {
           <RoleSwitcher role={role} onRoleChange={handleRoleChange} />
         </header>
 
-        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
+        {/* Desktop sidebar - shown for md screens and up */}
+        <div className="hidden md:flex fixed top-0 left-0 h-full w-20 bg-slate-900/90 backdrop-blur-lg border-r border-purple-500/20 flex-col items-center pt-24 space-y-8 shadow-lg shadow-purple-500/10 z-20">
+          <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
+          <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
+          <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
+        </div>
+
+        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8 md:ml-20">
           {renderView()}
         </main>
 
@@ -80,19 +87,6 @@ const App: React.FC = () => {
             <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
             <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
         </nav>
-
-        {/* Desktop sidebar - shown for md screens and up */}
-        <div className="hidden md:flex fixed top-0 left-0 h-full w-20 bg-slate-900/90 backdrop-blur-lg border-r border-purple-500/20 flex-col items-center pt-24 space-y-8 shadow-lg shadow-purple-500/10 z-20">
-          <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
-          <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
-          <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
-        </div>
-
-        <div className="md:pl-20"> {/* This pushes the main content to the right of the desktop sidebar */}
-          <div className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-              {renderView()}
-          </div>
-        </div>
       </div>
     </div>
   );
