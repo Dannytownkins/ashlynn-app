@@ -78,11 +78,11 @@ const App: React.FC = () => {
           <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
         </div>
 
-        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8 md:ml-20">
+        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8 md:ml-20 pb-20 md:pb-6">
           {renderView()}
         </main>
 
-        <nav className="sticky bottom-0 bg-slate-900/90 backdrop-blur-lg border-t border-purple-500/20 p-2 md:hidden flex justify-around shadow-lg shadow-purple-500/10">
+        <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-purple-500/20 p-2 md:hidden flex justify-around shadow-lg shadow-purple-500/10 z-30">
             <NavItem icon={role === UserRole.Student ? BookOpen : Users} label={role === UserRole.Student ? "Tasks" : "Dashboard"} currentView={view} targetView={View.Home} />
             <NavItem icon={BarChart2} label="Reports" currentView={view} targetView={View.Reports} />
             <NavItem icon={Settings} label="Settings" currentView={view} targetView={View.Settings} />
