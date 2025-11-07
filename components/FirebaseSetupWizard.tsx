@@ -341,74 +341,76 @@ const FirebaseSetupWizard: React.FC<FirebaseSetupWizardProps> = ({ onComplete, o
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-2xl">
-          <h2 className="text-2xl font-bold mb-2">Firebase Push Notifications Setup</h2>
-          <p className="text-indigo-100 text-sm">Set up notifications so you never miss important updates</p>
-        </div>
-
-        {/* Progress Steps */}
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <div className="flex justify-between items-center max-w-2xl mx-auto">
-            <StepIndicator step={1} label="Introduction" />
-            <div className="flex-1 h-1 bg-slate-300 mx-2"></div>
-            <StepIndicator step={2} label="Create Project" />
-            <div className="flex-1 h-1 bg-slate-300 mx-2"></div>
-            <StepIndicator step={3} label="Get Config" />
-            <div className="flex-1 h-1 bg-slate-300 mx-2"></div>
-            <StepIndicator step={4} label="Enable Messaging" />
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 overflow-y-auto">
+      <div className="min-h-screen flex items-start sm:items-center justify-center p-4 py-8">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 sm:p-6 rounded-t-2xl">
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Firebase Push Notifications Setup</h2>
+            <p className="text-indigo-100 text-xs sm:text-sm">Set up notifications so you never miss important updates</p>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
-          {renderStep()}
-        </div>
+          {/* Progress Steps */}
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-slate-50">
+            <div className="flex justify-between items-center max-w-2xl mx-auto">
+              <StepIndicator step={1} label="Introduction" />
+              <div className="flex-1 h-1 bg-slate-300 mx-1 sm:mx-2"></div>
+              <StepIndicator step={2} label="Create Project" />
+              <div className="flex-1 h-1 bg-slate-300 mx-1 sm:mx-2"></div>
+              <StepIndicator step={3} label="Get Config" />
+              <div className="flex-1 h-1 bg-slate-300 mx-1 sm:mx-2"></div>
+              <StepIndicator step={4} label="Enable Messaging" />
+            </div>
+          </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 rounded-b-2xl border-t border-slate-200 flex justify-between items-center">
-          <button
-            onClick={onSkip}
-            className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
-          >
-            Skip for now
-          </button>
-          <div className="flex space-x-3">
-            {currentStep > 1 && (
-              <button
-                onClick={() => setCurrentStep(currentStep - 1)}
-                className="px-5 py-2 border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 font-medium transition-colors"
-              >
-                Back
-              </button>
-            )}
-            {currentStep < totalSteps ? (
-              <button
-                onClick={() => setCurrentStep(currentStep + 1)}
-                disabled={!canProceed}
-                className={`px-5 py-2 rounded-lg font-medium transition-colors ${
-                  canProceed
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                    : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                Continue
-              </button>
-            ) : (
-              <button
-                onClick={() => onComplete(config)}
-                disabled={!canProceed}
-                className={`px-5 py-2 rounded-lg font-medium transition-colors ${
-                  canProceed
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                Complete Setup
-              </button>
-            )}
+          {/* Content */}
+          <div className="p-4 sm:p-6">
+            {renderStep()}
+          </div>
+
+          {/* Footer */}
+          <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 rounded-b-2xl border-t border-slate-200 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+            <button
+              onClick={onSkip}
+              className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium transition-colors order-2 sm:order-1"
+            >
+              Skip for now
+            </button>
+            <div className="flex space-x-3 order-1 sm:order-2">
+              {currentStep > 1 && (
+                <button
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  className="flex-1 sm:flex-none px-5 py-2 border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 font-medium transition-colors"
+                >
+                  Back
+                </button>
+              )}
+              {currentStep < totalSteps ? (
+                <button
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  disabled={!canProceed}
+                  className={`flex-1 sm:flex-none px-5 py-2 rounded-lg font-medium transition-colors ${
+                    canProceed
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  onClick={() => onComplete(config)}
+                  disabled={!canProceed}
+                  className={`flex-1 sm:flex-none px-5 py-2 rounded-lg font-medium transition-colors ${
+                    canProceed
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  Complete Setup
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
